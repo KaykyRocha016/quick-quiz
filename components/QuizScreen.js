@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import * as SQLite from 'expo-sqlite';
+import { openDatabase, getRandomQuestions } from '../database/db';
 
 const TOTAL_QUESTIONS = 5;
 const OPTIONS = ['A', 'B', 'C', 'D'];
@@ -15,11 +15,8 @@ export function QuizScreen({ onFinish }) {
 
     useEffect(() => {
         async function loadQuestions() {
-            const db = await SQLite.openDatabaseAsync('quick_quiz');
-            const result = await db.getAllAsync(
-                'SELECT * FROM questions ORDER BY RANDOM() LIMIT ?',
-                [TOTAL_QUESTIONS]
-            );
+            const db = await openDatabase();
+            const result = await getRandomQuestions(db, TOTAL_QUESTIONS);
             setQuestions(result);
         }
         loadQuestions();
