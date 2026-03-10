@@ -64,6 +64,5 @@ const CreateDatabase = async () => {
   if (count.total === 0) {
     await db.execAsync(insertScript)
   }
-  await db.closeAsync()
 
 }
