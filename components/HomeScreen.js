@@ -5,13 +5,13 @@ export function HomeScreen({ onStart }) {
         <ImageBackground
             source={require('../assets/icon.png')}
             style={styles.container}
-            resizeMode="cover"        
+            resizeMode="cover"
         >
             <View style={styles.overlay}>
-                <Text style={styles.titulo}>⚡ Quick Quiz</Text>
-                <Text style={styles.subtitulo}>Teste seu conhecimento em animes!</Text>
+                <Text style={styles.title}>⚡ Quick Quiz</Text>
+                <Text style={styles.subtitle}>Teste seu conhecimento em animes!</Text>
 
-                <TouchableOpacity style={styles.btn} onPress={onIniciar}>
+                <TouchableOpacity style={styles.btn} onPress={onStart}>
                     <Text style={styles.btnText}>Iniciar Quiz</Text>
                 </TouchableOpacity>
             </View>
@@ -25,18 +25,18 @@ const styles = StyleSheet.create({
     },
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 24,
     },
-    titulo: {
+    title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#fff',              
+        color: '#fff',
         marginBottom: 8,
     },
-    subtitulo: {
+    subtitle: {
         fontSize: 16,
         color: '#ddd',
         textAlign: 'center',

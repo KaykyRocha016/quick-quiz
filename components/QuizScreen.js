@@ -1,27 +1,31 @@
-import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getPerguntasAleatorias, openDatabase } from '../db';
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as SQLite from 'expo-sqlite';
 
-const TOTAL_PERGUNTAS = 5;
-const opcoes = ['A', 'B', 'C', 'D'];
+const TOTAL_QUESTIONS = 5;
+const OPTIONS = ['A', 'B', 'C', 'D'];
 
-export function QuizScreen({ onFinalizar }) {
-    const [perguntas, setPerguntas] = useState([]);
-    const [indiceAtual, setIndiceAtual] = useState(0);
-    const [acertos, setAcertos] = useState(0);
-    const [respostaSelecionada, setRespostaSelecionada] = useState(null); 
-    const [respondido, setRespondido] = useState(false);  responder
+export function QuizScreen({ onFinish }) {
+    const [questions, setQuestions] = useState([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [score, setScore] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const [answered, setAnswered] = useState(false);
+    const scoreRef = useRef(0);
 
     useEffect(() => {
-        async function carregarPerguntas() {
-            const db = await openDatabase();
-            const questoes = await getPerguntasAleatorias(db, TOTAL_PERGUNTAS);
-            setPerguntas(questoes);
+        async function loadQuestions() {
+            const db = await SQLite.openDatabaseAsync('quick_quiz');
+            const result = await db.getAllAsync(
+                'SELECT * FROM questions ORDER BY RANDOM() LIMIT ?',
+                [TOTAL_QUESTIONS]
+            );
+            setQuestions(result);
         }
-        carregarPerguntas();
+        loadQuestions();
     }, []);
 
-    if (perguntas.length === 0) {
+    if (questions.length === 0) {
         return (
             <View style={styles.container}>
                 <Text>Carregando perguntas...</Text>
@@ -29,68 +33,70 @@ export function QuizScreen({ onFinalizar }) {
         );
     }
 
-    const perguntaAtual = perguntas[indiceAtual];
-    const opcoesTexto = [
-        perguntaAtual.option_a,
-        perguntaAtual.option_b,
-        perguntaAtual.option_c,
-        perguntaAtual.option_d,
+    const currentQuestion = questions[currentIndex];
+    const optionTexts = [
+        currentQuestion.option_a,
+        currentQuestion.option_b,
+        currentQuestion.option_c,
+        currentQuestion.option_d,
     ];
 
-    function responder(indice) {
-        if (respondido) return;
+    function answer(index) {
+        if (answered) return;
 
-        setRespostaSelecionada(indice);
-        setRespondido(true);
+        setSelectedAnswer(index);
+        setAnswered(true);
 
-        const acertou = indice === perguntaAtual.right_answer;
-        if (acertou) setAcertos((a) => a + 1);
-    }
-
-    function proximaPergunta() {
-        const proximo = indiceAtual + 1;
-        if (proximo >= TOTAL_PERGUNTAS) {
-            onFinalizar(acertos + (respostaSelecionada === perguntaAtual.right_answer ? 1 : 0));
-        } else {
-            setIndiceAtual(proximo);
-            setRespostaSelecionada(null);
-            setRespondido(false);
+        if (index === currentQuestion.right_answer) {
+            scoreRef.current += 1;
+            setScore(scoreRef.current);
         }
     }
 
-    function getCorBotao(indice) {
-        if (!respondido) return '#487d76'; 
-        if (indice === perguntaAtual.right_answer) return '#2e7d32';  
-        if (indice === respostaSelecionada) return '#c62828';  
-        return '#9e9e9e';  
+    function nextQuestion() {
+        const next = currentIndex + 1;
+        if (next >= TOTAL_QUESTIONS) {
+            onFinish(scoreRef.current);
+        } else {
+            setCurrentIndex(next);
+            setSelectedAnswer(null);
+            setAnswered(false);
+        }
+    }
+
+    function getButtonColor(index) {
+        if (!answered) return '#487d76';
+        if (index === currentQuestion.right_answer) return '#2e7d32';
+        if (index === selectedAnswer) return '#c62828';
+        return '#9e9e9e';
     }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.progresso}>
-                Pergunta {indiceAtual + 1} de {TOTAL_PERGUNTAS}
+            <Text style={styles.progress}>
+                Pergunta {currentIndex + 1} de {TOTAL_QUESTIONS}
             </Text>
 
             <View style={styles.card}>
-                <Text style={styles.pergunta}>{perguntaAtual.text}</Text>
+                <Text style={styles.question}>{currentQuestion.text}</Text>
             </View>
 
-            {opcoesTexto.map((opcao, indice) => (
+            {optionTexts.map((option, index) => (
                 <TouchableOpacity
-                    key={indice}
-                    style={[styles.btn, { backgroundColor: getCorBotao(indice) }]}
-                    onPress={() => responder(indice)}
+                    key={index}
+                    style={[styles.btn, { backgroundColor: getButtonColor(index) }]}
+                    onPress={() => answer(index)}
                 >
                     <Text style={styles.btnText}>
-                        {opcoes[indice]}) {opcao}
+                        {OPTIONS[index]}) {option}
                     </Text>
                 </TouchableOpacity>
             ))}
 
-            {respondido && (
-                <TouchableOpacity style={styles.btnProxima} onPress={proximaPergunta}>
-                    <Text style={styles.btnProximaText}>
-                        {indiceAtual + 1 >= TOTAL_PERGUNTAS ? 'Ver Resultado →' : 'Próxima →'}
+            {answered && (
+                <TouchableOpacity style={styles.btnNext} onPress={nextQuestion}>
+                    <Text style={styles.btnNextText}>
+                        {currentIndex + 1 >= TOTAL_QUESTIONS ? 'Ver Resultado →' : 'Próxima →'}
                     </Text>
                 </TouchableOpacity>
             )}
@@ -105,7 +111,7 @@ const styles = StyleSheet.create({
         padding: 24,
         justifyContent: 'center',
     },
-    progresso: {
+    progress: {
         fontSize: 14,
         color: '#666',
         marginBottom: 16,
@@ -118,7 +124,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         elevation: 3,
     },
-    pergunta: {
+    question: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#333',
@@ -133,11 +139,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
     },
-    btnProxima: {
+    btnNext: {
         marginTop: 16,
         alignItems: 'flex-end',
     },
-    btnProximaText: {
+    btnNextText: {
         color: '#487d76',
         fontSize: 16,
         fontWeight: 'bold',
