@@ -1,9 +1,9 @@
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export function HomeScreen({ onStart }) {
+export function HomeScreen({ navigation }) {
     return (
         <ImageBackground
-            source={require('../assets/icon.png')}
+            source={require('../assets/brown_doka.jpg')}
             style={styles.container}
             resizeMode="cover"
         >
@@ -11,7 +11,7 @@ export function HomeScreen({ onStart }) {
                 <Text style={styles.title}>⚡ Quick Quiz</Text>
                 <Text style={styles.subtitle}>Teste seu conhecimento em animes!</Text>
 
-                <TouchableOpacity style={styles.btn} onPress={onStart}>
+                <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('Quiz')}>
                     <Text style={styles.btnText}>Iniciar Quiz</Text>
                 </TouchableOpacity>
             </View>
@@ -20,9 +20,7 @@ export function HomeScreen({ onStart }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
+    container: { flex: 1 },
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -30,27 +28,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 24,
     },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#fff',
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#ddd',
-        textAlign: 'center',
-        marginBottom: 40,
-    },
-    btn: {
-        backgroundColor: '#487d76',
-        paddingVertical: 14,
-        paddingHorizontal: 48,
-        borderRadius: 10,
-    },
-    btnText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
+    title: { fontSize: 32, fontWeight: 'bold', color: '#fff', marginBottom: 8 },
+    subtitle: { fontSize: 16, color: '#ddd', textAlign: 'center', marginBottom: 40 },
+    btn: { backgroundColor: '#487d76', paddingVertical: 14, paddingHorizontal: 48, borderRadius: 10 },
+    btnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
